@@ -15,23 +15,11 @@
  */
 package org.kurento.tutorial.helloworld;
 
-import java.io.IOException;
-
-import org.kurento.client.EndOfStreamEvent;
-import org.kurento.client.ErrorEvent;
-import org.kurento.client.EventListener;
-import org.kurento.client.IceCandidate;
-import org.kurento.client.IceCandidateFoundEvent;
-import org.kurento.client.KurentoClient;
-import org.kurento.client.MediaPipeline;
-import org.kurento.client.MediaProfileSpecType;
-import org.kurento.client.MediaType;
-import org.kurento.client.PausedEvent;
-import org.kurento.client.PlayerEndpoint;
-import org.kurento.client.RecorderEndpoint;
-import org.kurento.client.RecordingEvent;
-import org.kurento.client.StoppedEvent;
-import org.kurento.client.WebRtcEndpoint;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import org.apache.commons.io.FileUtils;
+import org.kurento.client.*;
 import org.kurento.jsonrpc.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,9 +29,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Hello World with recording handler (application and media logic).
@@ -185,6 +172,10 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
 
       connectAccordingToProfile(webRtcEndpoint, recorder, profile);
 
+      RtpEndpoint rtpEndpoint  =new RtpEndpoint.Builder(pipeline).build();
+      webRtcEndpoint.connect(rtpEndpoint, MediaType.VIDEO);
+      webRtcEndpoint.connect(rtpEndpoint, MediaType.AUDIO);
+
       // 2. Store user session
       UserSession user = new UserSession(session);
       user.setMediaPipeline(pipeline);
@@ -225,6 +216,12 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       webRtcEndpoint.gatherCandidates();
 
       recorder.record();
+
+      String sdp = generateSdpStreamConfig("127.0.0.1", 50000, 49000);
+      log.info(String.format("generate sdp: %s", sdp));
+      rtpEndpoint.processOffer(sdp);
+      bindFFmpeg(sdp);
+
     } catch (Throwable t) {
       log.error("Start error", t);
       sendError(session, t.getMessage());
@@ -357,4 +354,65 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       log.error("Exception sending message", e);
     }
   }
+
+  private String generateSdpStreamConfig(String ip, int port, int audioPort){
+      String sdpRtpOfferString = "v=0\n";
+      sdpRtpOfferString += "o=- 0 0 IN IP4 " + ip + "\n";
+      sdpRtpOfferString += "s=KMS\n";
+      sdpRtpOfferString += "c=IN IP4 " + ip + "\n";
+      sdpRtpOfferString += "t=0 0\n";
+      sdpRtpOfferString += "m=audio " + audioPort + " RTP/AVP 97\n";
+      sdpRtpOfferString += "a=recvonly\n";
+      sdpRtpOfferString += "a=rtpmap:97 PCMU/8000\n";
+      sdpRtpOfferString += "a=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3;config=1508\n";
+      sdpRtpOfferString += "m=video " + port + " RTP/AVP 96\n";
+      sdpRtpOfferString += "a=rtpmap:96 H264/90000\n";
+      sdpRtpOfferString += "a=fmtp:96 packetization-mode=1\n";
+      return sdpRtpOfferString;
+  }
+
+/*ffmpeg
+-protocol_whitelist "file,udp,rtp"
+-i test.sdp
+-vcodec copy
+-f flv
+rtmp://localhost/live/stream
+*/
+/*
+SDP:
+v=0
+o=- 0 0 IN IP4 127.0.0.1
+s=No Name
+c=IN IP4 127.0.0.1
+t=0 0
+a=tool:libavformat 57.71.100
+m=video 55000 RTP/AVP 96
+b=AS:200
+a=rtpmap:96 H264/90000
+*/
+  private void bindFFmpeg(String sdp) {
+    String uri = "file:///tmp/" + System.currentTimeMillis() + ".sdp";
+
+    try {
+      FileUtils.writeStringToFile(new File("uri"), sdp, "utf-8");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    String commandStr = "ffmpeg " +
+            "-protocol_whitelist \"file,udp,rtp\" " +
+            "-i " + uri +
+            "-vcodec copy " +
+            "-f flv " +
+            "rtmp://rtmp://34.80.197.62:1935/live/stream";
+
+    log.info(String.format("commond will exec. ffmpeg command: %s", commandStr));
+    try {
+      Runtime.getRuntime().exec(commandStr);
+    } catch (IOException e) {
+      e.printStackTrace();
+      log.info("ffmpeg exec error!", e);
+    }
+  }
+
 }
