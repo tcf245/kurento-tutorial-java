@@ -218,16 +218,8 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       webRtcEndpoint.connect(rtpEndpoint);
 
       String sdp = rtpEndpoint.generateOffer();
-
-//      String offer = webRtcEndpoint.generateOffer();
-//      String sdp = rtpEndpoint.processOffer(offer);
-
       log.info("generate sdp answer: " + sdp);
-//      String sdp = webRtcEndpoint.processOffer(sdpOffer);
-      log.info(String.format("generate sdp: %s", sdp));
-      rtpEndpoint.processOffer(sdp);
       bindFFmpeg(sdp);
-
     } catch (Throwable t) {
       log.error("Start error", t);
       sendError(session, t.getMessage());
