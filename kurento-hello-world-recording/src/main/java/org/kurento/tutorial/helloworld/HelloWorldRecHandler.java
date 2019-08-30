@@ -214,12 +214,13 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       recorder.record();
 
 
-      RtpEndpoint rtpEndpoint  =new RtpEndpoint.Builder(pipeline).build();
-      webRtcEndpoint.connect(rtpEndpoint, MediaType.VIDEO);
-      webRtcEndpoint.connect(rtpEndpoint, MediaType.AUDIO);
+      RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
+      webRtcEndpoint.connect(rtpEndpoint);
 
-      String offer = webRtcEndpoint.generateOffer();
-      String sdp = rtpEndpoint.processOffer(offer);
+      String sdp = rtpEndpoint.generateOffer();
+
+//      String offer = webRtcEndpoint.generateOffer();
+//      String sdp = rtpEndpoint.processOffer(offer);
 
       log.info("generate sdp answer: " + sdp);
 //      String sdp = webRtcEndpoint.processOffer(sdpOffer);
