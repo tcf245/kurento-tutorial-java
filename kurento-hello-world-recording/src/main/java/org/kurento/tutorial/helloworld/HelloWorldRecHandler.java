@@ -391,7 +391,7 @@ b=AS:200
 a=rtpmap:96 H264/90000
 */
   private void bindFFmpeg(String sdp) {
-    String uri = "file:///tmp/" + System.currentTimeMillis() + ".sdp";
+    String uri = "/tmp/" + System.currentTimeMillis() + ".sdp";
 
     try {
       FileUtils.writeStringToFile(new File("uri"), sdp, "utf-8");
@@ -401,7 +401,7 @@ a=rtpmap:96 H264/90000
 
     String commandStr = "ffmpeg " +
             "-protocol_whitelist \"file,udp,rtp\" " +
-            "-i " + uri +
+            "-i " + uri + " " +
             "-vcodec copy " +
             "-f flv " +
             "rtmp://34.80.197.62:1935/live/stream";
