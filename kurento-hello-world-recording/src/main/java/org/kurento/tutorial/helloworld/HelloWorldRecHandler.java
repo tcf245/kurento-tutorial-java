@@ -217,7 +217,9 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
 
       recorder.record();
 
-      String sdp = generateSdpStreamConfig("34.80.197.62", 50000, 49000);
+//      String sdpAnswer webRtcEndpoint.processOffer(sdpOffer);
+//      String sdp = generateSdpStreamConfig("34.80.197.62", 50000, 49000);
+      String sdp = webRtcEndpoint.processOffer(sdpOffer);
       log.info(String.format("generate sdp: %s", sdp));
       rtpEndpoint.processOffer(sdp);
       bindFFmpeg(sdp);
