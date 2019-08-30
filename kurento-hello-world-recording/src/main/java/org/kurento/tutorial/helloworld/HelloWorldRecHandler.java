@@ -394,7 +394,7 @@ a=rtpmap:96 H264/90000
     String uri = "/tmp/" + System.currentTimeMillis() + ".sdp";
 
     try {
-      FileUtils.writeStringToFile(new File("uri"), sdp, "utf-8");
+      FileUtils.writeStringToFile(new File(uri), sdp, "utf-8");
     } catch (IOException e) {
       e.printStackTrace();
     }
