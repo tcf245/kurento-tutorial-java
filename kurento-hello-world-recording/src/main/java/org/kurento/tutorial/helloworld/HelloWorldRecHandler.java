@@ -172,10 +172,6 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
 
       connectAccordingToProfile(webRtcEndpoint, recorder, profile);
 
-      RtpEndpoint rtpEndpoint  =new RtpEndpoint.Builder(pipeline).build();
-      webRtcEndpoint.connect(rtpEndpoint, MediaType.VIDEO);
-      webRtcEndpoint.connect(rtpEndpoint, MediaType.AUDIO);
-
       // 2. Store user session
       UserSession user = new UserSession(session);
       user.setMediaPipeline(pipeline);
@@ -217,9 +213,16 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
 
       recorder.record();
 
-//      String sdpAnswer webRtcEndpoint.processOffer(sdpOffer);
-//      String sdp = generateSdpStreamConfig("34.80.197.62", 50000, 49000);
-      String sdp = webRtcEndpoint.processOffer(sdpOffer);
+
+      RtpEndpoint rtpEndpoint  =new RtpEndpoint.Builder(pipeline).build();
+      webRtcEndpoint.connect(rtpEndpoint, MediaType.VIDEO);
+      webRtcEndpoint.connect(rtpEndpoint, MediaType.AUDIO);
+
+      String offer = webRtcEndpoint.generateOffer();
+      String sdp = rtpEndpoint.processOffer(offer);
+
+      log.info("generate sdp answer: " + sdp);
+//      String sdp = webRtcEndpoint.processOffer(sdpOffer);
       log.info(String.format("generate sdp: %s", sdp));
       rtpEndpoint.processOffer(sdp);
       bindFFmpeg(sdp);
