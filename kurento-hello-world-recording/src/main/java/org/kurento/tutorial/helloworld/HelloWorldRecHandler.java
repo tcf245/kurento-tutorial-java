@@ -404,7 +404,7 @@ a=rtpmap:96 H264/90000
             "-i " + uri +
             "-vcodec copy " +
             "-f flv " +
-            "rtmp://rtmp://34.80.197.62:1935/live/stream";
+            "rtmp://34.80.197.62:1935/live/stream";
 
     log.info(String.format("commond will exec. ffmpeg command: %s", commandStr));
     try {
