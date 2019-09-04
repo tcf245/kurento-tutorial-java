@@ -210,11 +210,12 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       }
 
       webRtcEndpoint.gatherCandidates();
+      log.info("AaAAAAAAAAAAAAAAA");
 
-      recorder.record();
-
+//      recorder.record();
 
       RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
+      rtpEndpoint.connect(webRtcEndpoint);
       webRtcEndpoint.connect(rtpEndpoint);
 
       String sdp = rtpEndpoint.generateOffer();
