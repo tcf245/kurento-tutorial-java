@@ -218,7 +218,30 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       rtpEndpoint.connect(webRtcEndpoint);
       webRtcEndpoint.connect(rtpEndpoint);
 
-      String sdp = rtpEndpoint.generateOffer();
+      rtpEndpoint.addElementConnectedListener(new EventListener<ElementConnectedEvent>() {
+        @Override
+        public void onEvent(ElementConnectedEvent event) {
+          JsonObject response = new JsonObject();
+          response.addProperty("id", "iceCandidate");
+          response.add("sink", JsonUtils.toJsonObject(event.getSinkMediaDescription()));
+          try {
+            synchronized (session) {
+              session.sendMessage(new TextMessage(response.toString()));
+            }
+          } catch (IOException e) {
+            log.error(e.getMessage());
+          }
+        }
+      });
+
+//      String sdp = rtpEndpoint.generateOffer();
+
+      int session_index = 0;
+      int streamPort = 55000 + (session_index * 2);
+      int audioPort = 49170 + (session_index * 2);
+      session_index++;
+
+      String sdp = generateSdpStreamConfig("172.17.0.3", streamPort, audioPort);
       log.info("generate sdp answer: " + sdp);
       bindFFmpeg(sdp);
     } catch (Throwable t) {
@@ -403,7 +426,7 @@ a=rtpmap:96 H264/90000
             "-i " + uri + " " +
             "-vcodec copy " +
             "-f flv " +
-            "rtmp://34.80.197.62:1935/live/stream";
+            "rtmp://39.106.57.103:1935/live/stream";
 
     log.info(String.format("commond will exec. ffmpeg command: %s", commandStr));
     try {
