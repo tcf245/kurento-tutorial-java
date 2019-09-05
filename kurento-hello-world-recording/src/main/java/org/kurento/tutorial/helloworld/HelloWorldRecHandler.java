@@ -212,7 +212,7 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       webRtcEndpoint.gatherCandidates();
       log.info("AaAAAAAAAAAAAAAAA");
 
-//      recorder.record();
+      recorder.record();
 
       RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
       rtpEndpoint.connect(webRtcEndpoint);
@@ -234,14 +234,14 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
         }
       });
 
-//      String sdp = rtpEndpoint.generateOffer();
+      String sdp = rtpEndpoint.generateOffer();
 
-      int session_index = 0;
-      int streamPort = 55000 + (session_index * 2);
-      int audioPort = 49170 + (session_index * 2);
-      session_index++;
+//      int session_index = 0;
+//      int streamPort = 55000 + (session_index * 2);
+//      int audioPort = 49170 + (session_index * 2);
+//      session_index++;
 
-      String sdp = generateSdpStreamConfig("172.17.0.3", streamPort, audioPort);
+//      String sdp = generateSdpStreamConfig("172.17.0.3", streamPort, audioPort);
       log.info("generate sdp answer: " + sdp);
       bindFFmpeg(sdp);
     } catch (Throwable t) {
