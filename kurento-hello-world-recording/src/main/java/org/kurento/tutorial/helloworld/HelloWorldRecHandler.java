@@ -112,7 +112,10 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       // 1. Media logic (webRtcEndpoint in loopback)
       MediaPipeline pipeline = kurento.createMediaPipeline();
       WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
-      webRtcEndpoint.connect(webRtcEndpoint);
+//      webRtcEndpoint.connect(webRtcEndpoint);
+
+      RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
+      rtpEndpoint.connect(webRtcEndpoint);
 
       MediaProfileSpecType profile = getMediaProfileFromMessage(jsonMessage);
 
@@ -210,39 +213,30 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       }
 
       webRtcEndpoint.gatherCandidates();
-      log.info("AaAAAAAAAAAAAAAAA");
+      log.info("sdp from client " + sdpOffer);
 
       recorder.record();
 
-      RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
-      rtpEndpoint.connect(webRtcEndpoint);
-      webRtcEndpoint.connect(rtpEndpoint);
-
-      rtpEndpoint.addElementConnectedListener(new EventListener<ElementConnectedEvent>() {
+      rtpEndpoint.addMediaSessionStartedListener(new EventListener<MediaSessionStartedEvent>() {
         @Override
-        public void onEvent(ElementConnectedEvent event) {
+        public void onEvent(MediaSessionStartedEvent event) {
           JsonObject response = new JsonObject();
-          response.addProperty("id", "iceCandidate");
-          response.add("sink", JsonUtils.toJsonObject(event.getSinkMediaDescription()));
-          try {
-            synchronized (session) {
-              session.sendMessage(new TextMessage(response.toString()));
-            }
-          } catch (IOException e) {
-            log.error(e.getMessage());
-          }
+          response.addProperty("id", "medisSource");
+          response.add("source", JsonUtils.toJsonObject(event.getSource()));
         }
       });
 
+
       String sdp = rtpEndpoint.generateOffer();
 
-//      int session_index = 0;
-//      int streamPort = 55000 + (session_index * 2);
-//      int audioPort = 49170 + (session_index * 2);
-//      session_index++;
-
-//      String sdp = generateSdpStreamConfig("172.17.0.3", streamPort, audioPort);
       log.info("generate sdp answer: " + sdp);
+      bindFFmpeg(sdp);
+      int session_index = 0;
+      int streamPort = 55000 + (session_index * 2);
+      int audioPort = 49170 + (session_index * 2);
+      session_index++;
+      sdp = generateSdpStreamConfig("172.17.0.3", streamPort, audioPort);
+
       bindFFmpeg(sdp);
     } catch (Throwable t) {
       log.error("Start error", t);
@@ -429,12 +423,12 @@ a=rtpmap:96 H264/90000
             "rtmp://39.106.57.103:1935/live/stream";
 
     log.info(String.format("commond will exec. ffmpeg command: %s", commandStr));
-    try {
-      Runtime.getRuntime().exec(commandStr);
-    } catch (IOException e) {
-      e.printStackTrace();
-      log.info("ffmpeg exec error!", e);
-    }
+//    try {
+//      Runtime.getRuntime().exec(commandStr);
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//      log.info("ffmpeg exec error!", e);
+//    }
   }
 
 }
