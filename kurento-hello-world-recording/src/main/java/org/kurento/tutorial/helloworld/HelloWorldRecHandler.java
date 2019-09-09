@@ -31,6 +31,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Hello World with recording handler (application and media logic).
@@ -216,7 +218,9 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
 
 
       RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
-      rtpEndpoint.connect(webRtcEndpoint);
+//      rtpEndpoint.connect(webRtcEndpoint);
+      webRtcEndpoint.connect(rtpEndpoint);
+
       rtpEndpoint.addMediaSessionStartedListener(new EventListener<MediaSessionStartedEvent>() {
         @Override
         public void onEvent(MediaSessionStartedEvent event) {
@@ -245,6 +249,10 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       sdp = generateSdpStreamConfig("35.189.190.239", streamPort, audioPort);
 
       bindFFmpeg(sdp);
+
+      List<Object> data = Collections.singletonList(rtpEndpoint.getSourceConnections(MediaType.VIDEO, "video"));
+      System.out.println(data);
+
     } catch (Throwable t) {
       log.error("Start error", t);
       sendError(session, t.getMessage());
