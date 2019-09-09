@@ -114,9 +114,6 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
 //      webRtcEndpoint.connect(webRtcEndpoint);
 
-      RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
-      rtpEndpoint.connect(webRtcEndpoint);
-
       MediaProfileSpecType profile = getMediaProfileFromMessage(jsonMessage);
 
       RecorderEndpoint recorder = new RecorderEndpoint.Builder(pipeline, RECORDER_FILE_PATH)
@@ -217,12 +214,22 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
 
       recorder.record();
 
+
+      RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
+      rtpEndpoint.connect(webRtcEndpoint);
       rtpEndpoint.addMediaSessionStartedListener(new EventListener<MediaSessionStartedEvent>() {
         @Override
         public void onEvent(MediaSessionStartedEvent event) {
           JsonObject response = new JsonObject();
           response.addProperty("id", "medisSource");
           response.add("source", JsonUtils.toJsonObject(event.getSource()));
+          synchronized (session) {
+            try {
+              session.sendMessage(new TextMessage(response.toString()));
+            } catch (IOException e) {
+              e.printStackTrace();
+            }
+          }
         }
       });
 
@@ -373,7 +380,7 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
 
   private String generateSdpStreamConfig(String ip, int port, int audioPort){
       String sdpRtpOfferString = "v=0\n";
-      sdpRtpOfferString += "o=- 0 0 IN IP4 " + "172.17.0.3" + "\n";
+      sdpRtpOfferString += "o=- 0 0 IN IP4 " + ip + "\n";
       sdpRtpOfferString += "s=KMS\n";
       sdpRtpOfferString += "c=IN IP4 " + ip + "\n";
       sdpRtpOfferString += "t=0 0\n";
