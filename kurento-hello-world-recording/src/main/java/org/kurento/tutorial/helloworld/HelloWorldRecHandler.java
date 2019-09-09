@@ -114,8 +114,7 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       // 1. Media logic (webRtcEndpoint in loopback)
       MediaPipeline pipeline = kurento.createMediaPipeline();
       WebRtcEndpoint webRtcEndpoint = new WebRtcEndpoint.Builder(pipeline).build();
-//      webRtcEndpoint.connect(webRtcEndpoint);
-
+      webRtcEndpoint.connect(webRtcEndpoint);
       MediaProfileSpecType profile = getMediaProfileFromMessage(jsonMessage);
 
       RecorderEndpoint recorder = new RecorderEndpoint.Builder(pipeline, RECORDER_FILE_PATH)
@@ -212,48 +211,6 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       }
 
       webRtcEndpoint.gatherCandidates();
-      log.info("sdp from client " + sdpOffer);
-
-      recorder.record();
-
-
-      RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
-//      rtpEndpoint.connect(webRtcEndpoint);
-      webRtcEndpoint.connect(rtpEndpoint);
-      rtpEndpoint.connect(webRtcEndpoint);
-
-      rtpEndpoint.addMediaSessionStartedListener(new EventListener<MediaSessionStartedEvent>() {
-        @Override
-        public void onEvent(MediaSessionStartedEvent event) {
-          JsonObject response = new JsonObject();
-          response.addProperty("id", "medisSource");
-          response.add("source", JsonUtils.toJsonObject(event.getSource()));
-          synchronized (session) {
-            try {
-              session.sendMessage(new TextMessage(response.toString()));
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-          }
-        }
-      });
-
-
-      String sdp = rtpEndpoint.generateOffer();
-
-      log.info("generate sdp answer: " + sdp);
-      bindFFmpeg(sdp);
-      int session_index = 0;
-      int streamPort = 55000 + (session_index * 2);
-      int audioPort = 49170 + (session_index * 2);
-      session_index++;
-      sdp = generateSdpStreamConfig("35.189.190.239", streamPort, audioPort);
-
-      bindFFmpeg(sdp);
-
-      List<Object> data = Collections.singletonList(rtpEndpoint.getSourceConnections(MediaType.VIDEO, "video"));
-      System.out.println(data);
-
     } catch (Throwable t) {
       log.error("Start error", t);
       sendError(session, t.getMessage());
