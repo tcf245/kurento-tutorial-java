@@ -220,6 +220,7 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       RtpEndpoint rtpEndpoint = new RtpEndpoint.Builder(pipeline).build();
 //      rtpEndpoint.connect(webRtcEndpoint);
       webRtcEndpoint.connect(rtpEndpoint);
+      rtpEndpoint.connect(webRtcEndpoint);
 
       rtpEndpoint.addMediaSessionStartedListener(new EventListener<MediaSessionStartedEvent>() {
         @Override
