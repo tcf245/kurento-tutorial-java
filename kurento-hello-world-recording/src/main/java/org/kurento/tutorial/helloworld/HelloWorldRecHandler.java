@@ -235,7 +235,7 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
       int streamPort = 55000 + (session_index * 2);
       int audioPort = 49170 + (session_index * 2);
       session_index++;
-      sdp = generateSdpStreamConfig("172.17.0.3", streamPort, audioPort);
+      sdp = generateSdpStreamConfig("35.189.190.239", streamPort, audioPort);
 
       bindFFmpeg(sdp);
     } catch (Throwable t) {
@@ -373,7 +373,7 @@ public class HelloWorldRecHandler extends TextWebSocketHandler {
 
   private String generateSdpStreamConfig(String ip, int port, int audioPort){
       String sdpRtpOfferString = "v=0\n";
-      sdpRtpOfferString += "o=- 0 0 IN IP4 " + ip + "\n";
+      sdpRtpOfferString += "o=- 0 0 IN IP4 " + "172.17.0.3" + "\n";
       sdpRtpOfferString += "s=KMS\n";
       sdpRtpOfferString += "c=IN IP4 " + ip + "\n";
       sdpRtpOfferString += "t=0 0\n";
